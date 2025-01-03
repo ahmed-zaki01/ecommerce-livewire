@@ -5,7 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
+use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,31 +51,42 @@ class User extends Authenticatable
                 ->label('User Name')
                 ->string()
                 ->required()
-                ->min(3)
-                ->max(255),
+                ->columnSpanFull()
+                ->minLength(3)
+                ->maxLength(255),
 
-            TextInput::make('email')
-                ->label('Email Address')
-                ->email()
-                ->required()
-                ->maxLength(255)
-                ->unique(ignoreRecord: true),
+            Grid::make('email')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('email')
+                        ->label('Email Address')
+                        ->email()
+                        ->required()
+                        ->maxLength(255)
+                        ->unique(ignoreRecord: true),
 
-            DateTimePicker::make('email_verified_at')
-                ->label('Email Verified At')
-                ->default(now()),
+                    DateTimePicker::make('email_verified_at')
+                        ->label('Email Verified At')
+                        ->default(now()),
+                ]),
 
-            TextInput::make('password')
-                ->label('Password')
-                ->password()
-                ->required(fn(Page $livewire): bool => $livewire instanceof CreateRecord)
-                ->dehydrated(fn($state) => filled($state)),
+            Grid::make('password')
+                ->columns(2)
+                ->visible(fn(string $context) => $context !== 'view')
+                ->schema([
+                    TextInput::make('password')
+                        ->label('Password')
+                        ->password()
+                        ->required(fn(Page $livewire): bool => $livewire instanceof CreateRecord)
+                        ->dehydrated(fn($state) => filled($state)),
 
-            TextInput::make('passwordConfirmation')
-                ->label('Password Confirmation')
-                ->password()
-                ->dehydrated(false)
+                    TextInput::make('passwordConfirmation')
+                        ->label('Password Confirmation')
+                        ->password()
+                        ->required(fn(Page $livewire): bool => $livewire instanceof CreateRecord)
+                        ->dehydrated(false)
 
+                ])
         ];
     }
 }
