@@ -10,6 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Forms\Set;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -48,30 +49,34 @@ class Product extends Model
                         ->required()
                         ->maxLength(255)
                         ->live(onBlur: true)
-                        ->afterStateUpdated(fn(string $operation, string|null $state, Set $set) =>
-                        $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                        ->afterStateUpdated(
+                            fn(string $operation, string|null $state, Set $set) =>
+                            $operation === 'create' ? $set('slug', Str::slug($state)) : null
+                        ),
 
                     TextInput::make('slug')
                         ->required()
+                        ->disabled()
                         ->dehydrated()
+                        ->unique(Product::class, 'slug', ignoreRecord: true)
                         ->maxLength(255),
 
                     MarkdownEditor::make('description')
                         ->required()
                         ->fileAttachmentsDirectory('products')
                         ->columnSpanFull(),
+                ])->columns(2),
 
-                    Section::make('images')->schema([
-                        FileUpload::make('images')
-                            ->required()
-                            ->multiple()
-                            ->directory('products')
-                            ->maxFiles(5)
-                            ->reorderable(),
-                    ]),
-
+                Section::make('images')->schema([
+                    FileUpload::make('images')
+                        ->required()
+                        ->multiple()
+                        ->directory('products')
+                        ->maxFiles(5)
+                        ->reorderable(),
                 ]),
             ])->columnSpan(2),
+
 
             Group::make()->schema([
                 Section::make('Pricing')->schema([
@@ -97,15 +102,19 @@ class Product extends Model
 
                 Section::make('Status')->schema([
                     Toggle::make('is_active')
+                        ->default(true)
                         ->required(),
 
                     Toggle::make('in_stock')
+                        ->default(true)
                         ->required(),
 
                     Toggle::make('is_featured')
+                        ->default(false)
                         ->required(),
 
                     Toggle::make('on_sale')
+                        ->default(false)
                         ->required(),
                 ])
             ])->columnSpan(1),
